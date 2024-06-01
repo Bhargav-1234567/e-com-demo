@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 let BASE_URL = "https://main--e-com-demo1.netlify.app/api";
 async function streamToJson(stream) {
   const reader = stream.getReader();
@@ -15,7 +13,7 @@ async function streamToJson(stream) {
   return JSON.parse(result);
 }
 const getCategories = async () => {
-  let catList = await fetch(BASE_URL + "/categories")
+  let catList = await fetch(BASE_URL + "/categoriesById")
     .then((response) => response.body)
     .then((stream) => streamToJson(stream))
     .then((json) => {
@@ -25,19 +23,26 @@ const getCategories = async () => {
   // const jsonForm = await catList.json();
   return catList;
 };
-async function Home() {
+async function Home({ params }) {
+  console.log({ params });
   let cats = await getCategories();
 
   return (
     <div className="container">
-      <div className="display-3 mb-2">Categories</div>
+      <div className="display-3 mb-2">Sub Category</div>
       <div className="d-flex flex-wrap gap-2">
-        {cats.map((cat) => {
-          return (
-            <Link key={cat.categoryId} href={`/${cat.label.toLowerCase()}`}>
-              <div class="card" style={{ width: "18rem" }}>
+        {cats.filter((item) =>
+          item.displayPath.toLowerCase().includes(params.subcate)
+        ).length === 0 && <div>No data for this sub category</div>}
+        {cats
+          .filter((item) =>
+            item.displayPath.toLowerCase().includes(params.subcate)
+          )
+          .map((cat) => {
+            return (
+              <div class="card" style={{ width: "18rem" }} key={cat.categoryId}>
                 <div class="card-body">
-                  <h5 class="card-title"> {cat.label}</h5>
+                  <h5 class="card-title"> {cat.displayPath}</h5>
                   <h6 class="card-subtitle mb-2 text-muted">
                     {cat.productType}
                   </h6>
@@ -47,9 +52,8 @@ async function Home() {
                   <div>{cat.categoryId}</div>
                 </div>
               </div>
-            </Link>
-          );
-        })}
+            );
+          })}
       </div>
     </div>
   );
